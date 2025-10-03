@@ -1,0 +1,288 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Activity, 
+  TrendingUp, 
+  DollarSign, 
+  Wallet, 
+  Brain,
+  Power,
+  AlertTriangle,
+  ArrowUpRight,
+  ArrowDownRight,
+  Settings,
+  LogOut
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
+const Dashboard = () => {
+  const [aiEnabled, setAiEnabled] = useState(false);
+  
+  // Mock data - will be connected to real backend
+  const walletBalance = {
+    usd: 1250.50,
+    zwl: 450000
+  };
+
+  const dailyPnL = 45.30;
+  const dailyPnLPercent = 3.75;
+  const totalPnL = 230.50;
+
+  const positions = [
+    { symbol: "OLD MUTUAL", side: "BUY", qty: 50, entry: 245.50, current: 248.20, pnl: 135.00, confidence: 87 },
+    { symbol: "ECONET", side: "BUY", qty: 100, entry: 32.10, current: 32.45, pnl: 35.00, confidence: 82 },
+  ];
+
+  const recentTrades = [
+    { symbol: "CBZ", side: "SELL", qty: 75, price: 125.30, pnl: 28.50, time: "2 min ago", confidence: 91 },
+    { symbol: "DELTA", side: "SELL", qty: 60, price: 180.75, pnl: 15.20, time: "8 min ago", confidence: 85 },
+    { symbol: "INNSCOR", side: "BUY", qty: 40, price: 520.00, pnl: 0, time: "12 min ago", confidence: 88 },
+  ];
+
+  const aiSignals = [
+    { symbol: "SEED CO", action: "BUY", confidence: 92, reason: "Strong upward momentum detected" },
+    { symbol: "TURNALL", action: "SELL", confidence: 78, reason: "Resistance level approaching" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Activity className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">ZimAI Trader</h1>
+            </div>
+            <div className="hidden md:flex gap-4 text-sm">
+              <Link to="/dashboard" className="text-foreground font-semibold">Dashboard</Link>
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-smooth">Deposit</Link>
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-smooth">Withdraw</Link>
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-smooth">History</Link>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Link to="/">
+              <Button variant="ghost" size="icon">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Wallet & Stats */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">USD Wallet</span>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="text-3xl font-bold">${walletBalance.usd.toFixed(2)}</div>
+            <Button variant="profit" size="sm" className="mt-4 w-full">Deposit</Button>
+          </Card>
+
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">ZWL Wallet</span>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="text-3xl font-bold">ZWL {walletBalance.zwl.toLocaleString()}</div>
+            <Button variant="outline" size="sm" className="mt-4 w-full">Deposit</Button>
+          </Card>
+
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Daily P&L</span>
+              <TrendingUp className="h-4 w-4 text-accent" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <div className="text-3xl font-bold text-accent">${dailyPnL.toFixed(2)}</div>
+              <div className="text-sm text-accent">+{dailyPnLPercent}%</div>
+            </div>
+            <Progress value={dailyPnLPercent * 10} className="mt-4" />
+          </Card>
+
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Total P&L</span>
+              <DollarSign className="h-4 w-4 text-accent" />
+            </div>
+            <div className="text-3xl font-bold text-accent">${totalPnL.toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground mt-2">All time profits</div>
+          </Card>
+        </div>
+
+        {/* AI Control Panel */}
+        <Card className="p-6 mb-8 bg-card border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${aiEnabled ? 'gradient-accent shadow-profit' : 'bg-secondary'}`}>
+                <Brain className="h-8 w-8" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-1">AI Trading Engine</h3>
+                <p className="text-sm text-muted-foreground">
+                  {aiEnabled ? "AI is actively monitoring markets and executing trades" : "AI trading is currently disabled"}
+                </p>
+              </div>
+            </div>
+            <Button 
+              variant={aiEnabled ? "destructive" : "profit"} 
+              size="lg"
+              onClick={() => setAiEnabled(!aiEnabled)}
+              className="gap-2"
+            >
+              <Power className="h-5 w-5" />
+              {aiEnabled ? "Stop AI" : "Start AI"}
+            </Button>
+          </div>
+
+          {aiEnabled && (
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Daily Loss Limit</div>
+                  <div className="flex items-center gap-2">
+                    <Progress value={25} className="flex-1" />
+                    <span className="text-sm font-semibold">25%</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Position Size</div>
+                  <div className="flex items-center gap-2">
+                    <Progress value={40} className="flex-1" />
+                    <span className="text-sm font-semibold">40%</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Trade Frequency</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-lg font-bold text-accent">12</div>
+                    <span className="text-sm text-muted-foreground">trades today</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Active Positions */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-xl font-bold mb-4">Active Positions</h3>
+              <div className="space-y-3">
+                {positions.map((pos, i) => (
+                  <Card key={i} className="p-4 bg-secondary border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold">{pos.symbol}</span>
+                          <Badge variant={pos.side === "BUY" ? "default" : "destructive"} className="text-xs">
+                            {pos.side}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {pos.qty} shares @ ${pos.entry}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 text-accent font-bold">
+                          <ArrowUpRight className="h-4 w-4" />
+                          ${pos.pnl.toFixed(2)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Current: ${pos.current}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-3 w-3 text-primary" />
+                      <span className="text-xs text-muted-foreground">AI Confidence:</span>
+                      <Progress value={pos.confidence} className="flex-1 h-2" />
+                      <span className="text-xs font-semibold text-primary">{pos.confidence}%</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-xl font-bold mb-4">Recent Trades</h3>
+              <div className="space-y-2">
+                {recentTrades.map((trade, i) => (
+                  <div key={i} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                    <div className="flex items-center gap-3">
+                      <Badge variant={trade.side === "BUY" ? "default" : "outline"} className="w-14">
+                        {trade.side}
+                      </Badge>
+                      <div>
+                        <div className="font-semibold">{trade.symbol}</div>
+                        <div className="text-xs text-muted-foreground">{trade.time}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{trade.qty} @ ${trade.price}</div>
+                      {trade.pnl > 0 && (
+                        <div className="text-sm text-accent">+${trade.pnl.toFixed(2)}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          {/* AI Signals */}
+          <div className="space-y-6">
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                AI Signals
+              </h3>
+              <div className="space-y-4">
+                {aiSignals.map((signal, i) => (
+                  <Card key={i} className="p-4 bg-secondary border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold">{signal.symbol}</span>
+                      <Badge variant={signal.action === "BUY" ? "default" : "destructive"}>
+                        {signal.action}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-3">{signal.reason}</div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={signal.confidence} className="flex-1 h-2" />
+                      <span className="text-xs font-semibold text-primary">{signal.confidence}%</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-destructive/10 border-destructive/20">
+              <div className="flex gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-destructive mb-2">Risk Notice</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Trading involves risk. Past performance does not guarantee future results. Only trade with money you can afford to lose.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
