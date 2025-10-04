@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,31 +16,82 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const [aiEnabled, setAiEnabled] = useState(false);
-  
-  // Mock data - will be connected to real backend
-  const walletBalance = {
-    usd: 1250.50,
-    zwl: 450000
+  const [profile, setProfile] = useState<any>(null);
+  const [positions, setPositions] = useState<any[]>([]);
+  const [recentTrades, setRecentTrades] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+
+      // Load profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select()
+        .eq("user_id", session.user.id)
+        .single();
+
+      setProfile(profileData);
+
+      // Load open positions
+      const { data: positionsData } = await supabase
+        .from("trades")
+        .select()
+        .eq("user_id", session.user.id)
+        .eq("status", "open")
+        .order("created_at", { ascending: false });
+
+      setPositions(positionsData || []);
+
+      // Load recent closed trades
+      const { data: tradesData } = await supabase
+        .from("trades")
+        .select()
+        .eq("user_id", session.user.id)
+        .eq("status", "closed")
+        .order("closed_at", { ascending: false })
+        .limit(5);
+
+      setRecentTrades(tradesData || []);
+    };
+
+    loadData();
+
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
   };
 
-  const dailyPnL = 45.30;
-  const dailyPnLPercent = 3.75;
-  const totalPnL = 230.50;
+  const walletBalance = {
+    usd: parseFloat(profile?.usd_balance || 0),
+    zwl: parseFloat(profile?.zwl_balance || 0)
+  };
 
-  const positions = [
-    { symbol: "OLD MUTUAL", side: "BUY", qty: 50, entry: 245.50, current: 248.20, pnl: 135.00, confidence: 87 },
-    { symbol: "ECONET", side: "BUY", qty: 100, entry: 32.10, current: 32.45, pnl: 35.00, confidence: 82 },
-  ];
-
-  const recentTrades = [
-    { symbol: "CBZ", side: "SELL", qty: 75, price: 125.30, pnl: 28.50, time: "2 min ago", confidence: 91 },
-    { symbol: "DELTA", side: "SELL", qty: 60, price: 180.75, pnl: 15.20, time: "8 min ago", confidence: 85 },
-    { symbol: "INNSCOR", side: "BUY", qty: 40, price: 520.00, pnl: 0, time: "12 min ago", confidence: 88 },
-  ];
+  const dailyPnL = 0;
+  const dailyPnLPercent = 0;
+  const totalPnL = recentTrades.reduce((sum, t) => sum + parseFloat(t.pnl || 0), 0);
 
   const aiSignals = [
     { symbol: "SEED CO", action: "BUY", confidence: 92, reason: "Strong upward momentum detected" },
@@ -59,20 +110,18 @@ const Dashboard = () => {
             </div>
             <div className="hidden md:flex gap-4 text-sm">
               <Link to="/dashboard" className="text-foreground font-semibold">Dashboard</Link>
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-smooth">Deposit</Link>
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-smooth">Withdraw</Link>
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-smooth">History</Link>
+              <Link to="/deposit" className="text-muted-foreground hover:text-foreground transition-smooth">Deposit</Link>
+              <Link to="/withdraw" className="text-muted-foreground hover:text-foreground transition-smooth">Withdraw</Link>
+              <Link to="/history" className="text-muted-foreground hover:text-foreground transition-smooth">History</Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
               <Settings className="h-5 w-5" />
             </Button>
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </Link>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </nav>
@@ -86,7 +135,9 @@ const Dashboard = () => {
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="text-3xl font-bold">${walletBalance.usd.toFixed(2)}</div>
-            <Button variant="profit" size="sm" className="mt-4 w-full">Deposit</Button>
+            <Link to="/deposit" className="mt-4 w-full block">
+              <Button variant="profit" size="sm" className="w-full">Deposit</Button>
+            </Link>
           </Card>
 
           <Card className="p-6 bg-card border-border">
@@ -95,7 +146,9 @@ const Dashboard = () => {
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="text-3xl font-bold">ZWL {walletBalance.zwl.toLocaleString()}</div>
-            <Button variant="outline" size="sm" className="mt-4 w-full">Deposit</Button>
+            <Link to="/deposit" className="mt-4 w-full block">
+              <Button variant="outline" size="sm" className="w-full">Deposit</Button>
+            </Link>
           </Card>
 
           <Card className="p-6 bg-card border-border">
@@ -104,10 +157,9 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-accent" />
             </div>
             <div className="flex items-baseline gap-2">
-              <div className="text-3xl font-bold text-accent">${dailyPnL.toFixed(2)}</div>
-              <div className="text-sm text-accent">+{dailyPnLPercent}%</div>
+              <div className="text-3xl font-bold">${dailyPnL.toFixed(2)}</div>
             </div>
-            <Progress value={dailyPnLPercent * 10} className="mt-4" />
+            <p className="text-xs text-muted-foreground mt-2">Today's performance</p>
           </Card>
 
           <Card className="p-6 bg-card border-border">
@@ -179,65 +231,78 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-6 bg-card border-border">
               <h3 className="text-xl font-bold mb-4">Active Positions</h3>
-              <div className="space-y-3">
-                {positions.map((pos, i) => (
-                  <Card key={i} className="p-4 bg-secondary border-border">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
+              {positions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No active positions</p>
+              ) : (
+                <div className="space-y-3">
+                  {positions.map((pos) => (
+                    <Card key={pos.id} className="p-4 bg-secondary border-border">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold">{pos.symbol}</span>
+                            <Badge variant={pos.side === "BUY" ? "default" : "destructive"} className="text-xs">
+                              {pos.side}
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {pos.quantity} shares @ ${parseFloat(pos.entry_price).toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {pos.pnl && (
+                            <div className="flex items-center gap-1 text-accent font-bold">
+                              <ArrowUpRight className="h-4 w-4" />
+                              ${parseFloat(pos.pnl).toFixed(2)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {pos.confidence && (
                         <div className="flex items-center gap-2">
-                          <span className="font-bold">{pos.symbol}</span>
-                          <Badge variant={pos.side === "BUY" ? "default" : "destructive"} className="text-xs">
-                            {pos.side}
-                          </Badge>
+                          <Brain className="h-3 w-3 text-primary" />
+                          <span className="text-xs text-muted-foreground">AI Confidence:</span>
+                          <Progress value={pos.confidence} className="flex-1 h-2" />
+                          <span className="text-xs font-semibold text-primary">{pos.confidence}%</span>
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {pos.qty} shares @ ${pos.entry}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-accent font-bold">
-                          <ArrowUpRight className="h-4 w-4" />
-                          ${pos.pnl.toFixed(2)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Current: ${pos.current}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Brain className="h-3 w-3 text-primary" />
-                      <span className="text-xs text-muted-foreground">AI Confidence:</span>
-                      <Progress value={pos.confidence} className="flex-1 h-2" />
-                      <span className="text-xs font-semibold text-primary">{pos.confidence}%</span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card className="p-6 bg-card border-border">
               <h3 className="text-xl font-bold mb-4">Recent Trades</h3>
-              <div className="space-y-2">
-                {recentTrades.map((trade, i) => (
-                  <div key={i} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                    <div className="flex items-center gap-3">
-                      <Badge variant={trade.side === "BUY" ? "default" : "outline"} className="w-14">
-                        {trade.side}
-                      </Badge>
-                      <div>
-                        <div className="font-semibold">{trade.symbol}</div>
-                        <div className="text-xs text-muted-foreground">{trade.time}</div>
+              {recentTrades.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No trades yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {recentTrades.map((trade) => (
+                    <div key={trade.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={trade.side === "BUY" ? "default" : "outline"} className="w-14">
+                          {trade.side}
+                        </Badge>
+                        <div>
+                          <div className="font-semibold">{trade.symbol}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(trade.closed_at).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">{trade.quantity} @ ${parseFloat(trade.entry_price).toFixed(2)}</div>
+                        {trade.pnl && (
+                          <div className={`text-sm ${parseFloat(trade.pnl) >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                            {parseFloat(trade.pnl) >= 0 ? '+' : ''}${parseFloat(trade.pnl).toFixed(2)}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold">{trade.qty} @ ${trade.price}</div>
-                      {trade.pnl > 0 && (
-                        <div className="text-sm text-accent">+${trade.pnl.toFixed(2)}</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </Card>
           </div>
 
