@@ -14,7 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          usd_balance: number
+          user_id: string
+          zwl_balance: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          usd_balance?: number
+          user_id: string
+          zwl_balance?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          usd_balance?: number
+          user_id?: string
+          zwl_balance?: number
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          closed_at: string | null
+          confidence: number | null
+          created_at: string
+          entry_price: number
+          exit_price: number | null
+          id: string
+          pnl: number | null
+          quantity: number
+          side: string
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          confidence?: number | null
+          created_at?: string
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          pnl?: number | null
+          quantity: number
+          side: string
+          status?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          confidence?: number | null
+          created_at?: string
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          pnl?: number | null
+          quantity?: number
+          side?: string
+          status?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          reference: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
