@@ -14,11 +14,15 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Settings,
-  LogOut
+  LogOut,
+  Shield,
+  FileText,
+  Users
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Dashboard = () => {
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -27,6 +31,7 @@ const Dashboard = () => {
   const [recentTrades, setRecentTrades] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: userRoles } = useUserRole();
 
   useEffect(() => {
     const loadData = async () => {
@@ -127,6 +132,46 @@ const Dashboard = () => {
       </nav>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Enterprise Controls - Only visible to admin/compliance/auditor roles */}
+        {userRoles && userRoles.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Enterprise Controls
+            </h2>
+            <div className="grid md:grid-cols-4 gap-4">
+              {userRoles.includes('admin') && (
+                <Card className="p-4 bg-card border-border hover:bg-accent/5 cursor-pointer transition-smooth" onClick={() => navigate('/admin')}>
+                  <Users className="h-8 w-8 text-primary mb-2" />
+                  <h3 className="font-semibold mb-1">Admin Panel</h3>
+                  <p className="text-xs text-muted-foreground">Manage user roles</p>
+                </Card>
+              )}
+              {(userRoles.includes('admin') || userRoles.includes('auditor')) && (
+                <Card className="p-4 bg-card border-border hover:bg-accent/5 cursor-pointer transition-smooth" onClick={() => navigate('/audit-log')}>
+                  <FileText className="h-8 w-8 text-primary mb-2" />
+                  <h3 className="font-semibold mb-1">Audit Log</h3>
+                  <p className="text-xs text-muted-foreground">View system history</p>
+                </Card>
+              )}
+              {(userRoles.includes('admin') || userRoles.includes('trader') || userRoles.includes('operator')) && (
+                <Card className="p-4 bg-card border-border hover:bg-accent/5 cursor-pointer transition-smooth" onClick={() => navigate('/model-registry')}>
+                  <Brain className="h-8 w-8 text-primary mb-2" />
+                  <h3 className="font-semibold mb-1">Model Registry</h3>
+                  <p className="text-xs text-muted-foreground">AI governance</p>
+                </Card>
+              )}
+              {(userRoles.includes('admin') || userRoles.includes('compliance')) && (
+                <Card className="p-4 bg-card border-border hover:bg-accent/5 cursor-pointer transition-smooth" onClick={() => navigate('/compliance')}>
+                  <Shield className="h-8 w-8 text-primary mb-2" />
+                  <h3 className="font-semibold mb-1">Compliance</h3>
+                  <p className="text-xs text-muted-foreground">KYC/AML monitoring</p>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Wallet & Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 bg-card border-border">

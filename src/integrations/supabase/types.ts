@@ -14,6 +14,206 @@ export type Database = {
   }
   public: {
     Tables: {
+      aml_alerts: {
+        Row: {
+          alert_type: string
+          assigned_to: string | null
+          created_at: string
+          details: Json
+          id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          assigned_to?: string | null
+          created_at?: string
+          details: Json
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          assigned_to?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aml_alerts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type: string
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kyc_records: {
+        Row: {
+          address: string
+          created_at: string
+          date_of_birth: string
+          full_name: string
+          id: string
+          id_number: string
+          id_type: string
+          pep_check_result: string | null
+          phone: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sanctions_check_result: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verification_documents: Json | null
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          date_of_birth: string
+          full_name: string
+          id?: string
+          id_number: string
+          id_type: string
+          pep_check_result?: string | null
+          phone: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sanctions_check_result?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verification_documents?: Json | null
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          date_of_birth?: string
+          full_name?: string
+          id?: string
+          id_number?: string
+          id_type?: string
+          pep_check_result?: string | null
+          phone?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sanctions_check_result?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verification_documents?: Json | null
+        }
+        Relationships: []
+      }
+      model_registry: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          deployed_at: string
+          deployed_by: string
+          hyperparameters: Json | null
+          id: string
+          model_name: string
+          notes: string | null
+          performance_metrics: Json | null
+          status: string
+          training_data_id: string | null
+          validation_results: Json | null
+          version: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          deployed_at?: string
+          deployed_by: string
+          hyperparameters?: Json | null
+          id?: string
+          model_name: string
+          notes?: string | null
+          performance_metrics?: Json | null
+          status?: string
+          training_data_id?: string | null
+          validation_results?: Json | null
+          version: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          deployed_at?: string
+          deployed_by?: string
+          hyperparameters?: Json | null
+          id?: string
+          model_name?: string
+          notes?: string | null
+          performance_metrics?: Json | null
+          status?: string
+          training_data_id?: string | null
+          validation_results?: Json | null
+          version?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -128,15 +328,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "trader" | "auditor" | "compliance" | "operator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -263,6 +493,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "trader", "auditor", "compliance", "operator"],
+    },
   },
 } as const
