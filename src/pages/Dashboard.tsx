@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Activity, 
   TrendingUp, 
@@ -23,6 +24,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { OptionsTradeForm } from "@/components/OptionsTradeForm";
 
 const Dashboard = () => {
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -132,6 +134,13 @@ const Dashboard = () => {
       </nav>
 
       <div className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="options">Options Trading</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
         {/* Enterprise Controls - Only visible to admin/compliance/auditor roles */}
         {userRoles && userRoles.length > 0 && (
           <div className="mb-8">
@@ -390,6 +399,12 @@ const Dashboard = () => {
             </Card>
           </div>
         </div>
+          </TabsContent>
+
+          <TabsContent value="options">
+            <OptionsTradeForm />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

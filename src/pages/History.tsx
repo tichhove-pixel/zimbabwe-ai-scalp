@@ -137,12 +137,25 @@ const History = () => {
                             <Badge variant={trade.side === "BUY" ? "default" : "destructive"}>
                               {trade.side}
                             </Badge>
+                            {trade.instrument_type === 'option' && (
+                              <Badge variant="outline" className="bg-purple-500/10 text-purple-700 border-purple-500/20">
+                                {trade.option_type?.toUpperCase()} OPTION
+                              </Badge>
+                            )}
                             {trade.status === "open" && (
                               <Badge variant="secondary">OPEN</Badge>
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">
-                            {trade.quantity} shares @ ${parseFloat(trade.entry_price).toFixed(2)}
+                            {trade.instrument_type === 'option' ? (
+                              <div className="space-y-1">
+                                <div>Underlying: {trade.underlying_asset}</div>
+                                <div>Strike: ${parseFloat(trade.strike_price || 0).toFixed(2)} | Expiry: {trade.expiration_date ? format(new Date(trade.expiration_date), "MMM dd, yyyy") : 'N/A'}</div>
+                                <div>{trade.quantity} contracts ({trade.contract_size || 100} shares) @ ${parseFloat(trade.premium || 0).toFixed(2)}</div>
+                              </div>
+                            ) : (
+                              <div>{trade.quantity} shares @ ${parseFloat(trade.entry_price).toFixed(2)}</div>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">
