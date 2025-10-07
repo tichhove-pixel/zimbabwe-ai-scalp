@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { OptionsTradeForm } from "@/components/OptionsTradeForm";
+import { useDemoTrading } from "@/hooks/useDemoTrading";
 
 const Dashboard = () => {
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -34,6 +35,16 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: userRoles } = useUserRole();
+  
+  // Demo trading hook
+  const {
+    demoPositions,
+    demoRecentTrades,
+    demoSignals,
+    dailyPnL: demoDailyPnL,
+    totalPnL: demoTotalPnL,
+    tradeCount: demoTradeCount
+  } = useDemoTrading(aiEnabled);
 
   useEffect(() => {
     const loadData = async () => {
@@ -96,14 +107,13 @@ const Dashboard = () => {
     zwl: parseFloat(profile?.zwl_balance || 0)
   };
 
-  const dailyPnL = 0;
-  const dailyPnLPercent = 0;
-  const totalPnL = recentTrades.reduce((sum, t) => sum + parseFloat(t.pnl || 0), 0);
-
-  const aiSignals = [
-    { symbol: "SEED CO", action: "BUY", confidence: 92, reason: "Strong upward momentum detected" },
-    { symbol: "TURNALL", action: "SELL", confidence: 78, reason: "Resistance level approaching" },
-  ];
+  // Use demo data when AI is enabled, otherwise show real data
+  const displayPositions = aiEnabled ? demoPositions : positions;
+  const displayRecentTrades = aiEnabled ? demoRecentTrades : recentTrades;
+  const displaySignals = aiEnabled ? demoSignals : [];
+  const dailyPnL = aiEnabled ? demoDailyPnL : 0;
+  const totalPnL = aiEnabled ? demoTotalPnL : recentTrades.reduce((sum, t) => sum + parseFloat(t.pnl || 0), 0);
+  const tradeFrequency = aiEnabled ? demoTradeCount : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -271,7 +281,7 @@ const Dashboard = () => {
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Trade Frequency</div>
                   <div className="flex items-center gap-2">
-                    <div className="text-lg font-bold text-accent">12</div>
+                    <div className="text-lg font-bold text-accent">{tradeFrequency}</div>
                     <span className="text-sm text-muted-foreground">trades today</span>
                   </div>
                 </div>
@@ -285,11 +295,13 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-6 bg-card border-border">
               <h3 className="text-xl font-bold mb-4">Active Positions</h3>
-              {positions.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No active positions</p>
+              {displayPositions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  {aiEnabled ? "AI is analyzing markets..." : "No active positions"}
+                </p>
               ) : (
                 <div className="space-y-3">
-                  {positions.map((pos) => (
+                  {displayPositions.map((pos) => (
                     <Card key={pos.id} className="p-4 bg-secondary border-border">
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -304,10 +316,10 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          {pos.pnl && (
-                            <div className="flex items-center gap-1 text-accent font-bold">
-                              <ArrowUpRight className="h-4 w-4" />
-                              ${parseFloat(pos.pnl).toFixed(2)}
+                          {pos.pnl !== undefined && (
+                            <div className={`flex items-center gap-1 font-bold ${pos.pnl >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                              {pos.pnl >= 0 ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                              {pos.pnl >= 0 ? '+' : ''}${parseFloat(pos.pnl).toFixed(2)}
                             </div>
                           )}
                         </div>
@@ -328,11 +340,13 @@ const Dashboard = () => {
 
             <Card className="p-6 bg-card border-border">
               <h3 className="text-xl font-bold mb-4">Recent Trades</h3>
-              {recentTrades.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No trades yet</p>
+              {displayRecentTrades.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  {aiEnabled ? "Waiting for trade executions..." : "No trades yet"}
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {recentTrades.map((trade) => (
+                  {displayRecentTrades.map((trade) => (
                     <div key={trade.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                       <div className="flex items-center gap-3">
                         <Badge variant={trade.side === "BUY" ? "default" : "outline"} className="w-14">
@@ -367,8 +381,17 @@ const Dashboard = () => {
                 <Brain className="h-5 w-5 text-primary" />
                 AI Signals
               </h3>
-              <div className="space-y-4">
-                {aiSignals.map((signal, i) => (
+              {!aiEnabled ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Enable AI to see live trading signals
+                </p>
+              ) : displaySignals.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Scanning markets for opportunities...
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {displaySignals.map((signal, i) => (
                   <Card key={i} className="p-4 bg-secondary border-border">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold">{signal.symbol}</span>
@@ -382,8 +405,9 @@ const Dashboard = () => {
                       <span className="text-xs font-semibold text-primary">{signal.confidence}%</span>
                     </div>
                   </Card>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card className="p-6 bg-destructive/10 border-destructive/20">
