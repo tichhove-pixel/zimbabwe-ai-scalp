@@ -15,7 +15,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Alpaca market data function invoked');
+    
     if (!ALPACA_API_KEY || !ALPACA_API_SECRET) {
+      console.error('Alpaca API credentials not configured');
       throw new Error('Alpaca API credentials not configured');
     }
 
