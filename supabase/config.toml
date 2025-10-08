@@ -1,1 +1,4 @@
 project_id = "plrabrwbcehoaqhdjnbg"
+
+[functions.alpaca-market-data]
+verify_jwt = true

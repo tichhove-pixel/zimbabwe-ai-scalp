@@ -127,6 +127,7 @@ const Dashboard = () => {
             </div>
             <div className="hidden md:flex gap-4 text-sm">
               <Link to="/dashboard" className="text-foreground font-semibold">Dashboard</Link>
+              <Link to="/trade" className="text-muted-foreground hover:text-foreground transition-smooth">Trade</Link>
               <Link to="/deposit" className="text-muted-foreground hover:text-foreground transition-smooth">Deposit</Link>
               <Link to="/withdraw" className="text-muted-foreground hover:text-foreground transition-smooth">Withdraw</Link>
               <Link to="/history" className="text-muted-foreground hover:text-foreground transition-smooth">History</Link>

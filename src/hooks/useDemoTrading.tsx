@@ -23,7 +23,9 @@ interface DemoSignal {
 
 const SYMBOLS = [
   "SEED CO", "TURNALL", "DELTA", "ECONET", "INNSCOR",
-  "OK ZIMBABWE", "SIMBISA", "CBZ", "FBC", "NMBZ"
+  "OK ZIMBABWE", "SIMBISA", "CBZ", "FBC", "NMBZ",
+  "AAPL", "GOOGL", "TSLA", "EUR/USD", "GBP/USD", 
+  "BTC/USD", "ETH/USD", "XRP/USD"
 ];
 
 const REASONS = [

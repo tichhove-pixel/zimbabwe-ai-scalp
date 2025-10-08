@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import AuditLog from "./pages/AuditLog";
 import ModelRegistry from "./pages/ModelRegistry";
 import Compliance from "./pages/Compliance";
+import Trade from "./pages/Trade";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/deposit" element={<Deposit />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/history" element={<History />} />
+          <Route path="/trade" element={<Trade />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/audit-log" element={<AuditLog />} />
           <Route path="/model-registry" element={<ModelRegistry />} />
