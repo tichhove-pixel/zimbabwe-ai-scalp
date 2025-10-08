@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { OptionsTradeForm } from "@/components/OptionsTradeForm";
+import { UnifiedTradeForm } from "@/components/UnifiedTradeForm";
 import { useDemoTrading } from "@/hooks/useDemoTrading";
 
 const Dashboard = () => {
@@ -149,6 +150,7 @@ const Dashboard = () => {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="options">Options Trading</TabsTrigger>
+            <TabsTrigger value="forex-crypto">Forex & Crypto</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -428,6 +430,10 @@ const Dashboard = () => {
 
           <TabsContent value="options">
             <OptionsTradeForm />
+          </TabsContent>
+
+          <TabsContent value="forex-crypto">
+            <UnifiedTradeForm />
           </TabsContent>
         </Tabs>
       </div>
